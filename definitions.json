@@ -1,0 +1,57 @@
+{
+    "rabbit_version": "3.6.6",
+    "users": [
+        {
+            "name": "guest",
+            "password": "guest",
+            "hashing_algorithm": "rabbit_password_hashing_sha256",
+            "tags": "administrator"
+        }
+    ],
+    "vhosts": [
+        {
+            "name": "/"
+        }
+    ],
+    "permissions": [
+        {
+            "user": "guest",
+            "vhost": "/",
+            "configure": ".*",
+            "write": ".*",
+            "read": ".*"
+        }
+    ],
+    "parameters": [],
+    "policies": [],
+    "exchanges": [
+        {
+            "name": "logging",
+            "vhost": "/",
+            "type": "topic",
+            "durable": true,
+            "auto_delete": false,
+            "internal": false,
+            "arguments": {}
+        }
+    ],
+    "queues": [
+        {
+            "name": "logging_queue",
+            "vhost": "/",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {}
+        }
+    ],
+    "bindings": [
+        {
+            "source": "logging",
+            "vhost": "/",
+            "destination": "logging_queue",
+            "destination_type": "queue",
+            "routing_key": "logstash",
+            "arguments": {}
+        }
+    ]
+}
