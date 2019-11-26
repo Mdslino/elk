@@ -12,11 +12,6 @@ broker_port = int(os.getenv("BROKER_PORT", 5672))
 broker_user = os.getenv("BROKER_USER", "guest")
 broker_pass = os.getenv("BROKER_PASS", "guest")
 
-print(broker_host)
-print(broker_port)
-print(broker_user)
-print(broker_pass)
-
 rabbit = RabbitMQHandler(
     host=broker_host,
     port=broker_port,
@@ -25,6 +20,7 @@ rabbit = RabbitMQHandler(
     exchange="logging",
     routing_key_format="logstash",
 )
+
 logger.addHandler(rabbit)
 
 app = Flask(__name__)
