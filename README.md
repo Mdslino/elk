@@ -9,6 +9,6 @@ To run the ELK stack just execute:
 
 `docker-compose up --build -d app logstash`
 
-Now you can access Kibana on `http://localgost:5601` and the web application on `http://localhost:8000`
+Now you can access Kibana on `http://localhost:5601` and the web application on `http://localhost:8000`
 
 Every time you access the web application a log will be send to RabbitMQ and will be consumed by logstash.
