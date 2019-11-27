@@ -3,25 +3,37 @@ version: '3.7'
 services:
   app:
     container_name: app
-    build: 
+    command: ["gunicorn", "-c", "/app/gunicorn_config.py", "app"]
+    build:
       context: .
       dockerfile: docker/Dockerfile
-      args: 
+      args:
         host: 0.0.0.0
         port: 80
         broker_host: broker
         broker_port: 5672
         broker_user: guest
         broker_pass: guest
-    ports: 
+        apm_host: http://apm:8200
+        gunicorn_log_level: INFO
+        gunicorn_workers: 4
+    ports:
       - 8000:80
-    links: 
+    links:
       - broker
-    depends_on: 
+      - apm
+    depends_on:
       - broker
+      - apm
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   broker:
-    build: 
+    build:
       context: .
       dockerfile: docker/rabbitmq.Dockerfile
     container_name: broker
@@ -56,6 +68,61 @@ services:
       timeout: 10s
       retries: 5
 
+  apm:
+    image: docker.elastic.co/apm/apm-server:7.4.2
+    container_name: apm
+    ports:
+      - 8200:8200
+    links:
+      - elasticsearch
+    depends_on:
+      - elasticsearch
+      - kibana
+    environment:
+      - output.elasticsearch.hosts='["http://elasticsearch:9200"]'
+      - apm-server.host=0.0.0.0:8200
+
+  heartbeat:
+    image: docker.elastic.co/beats/heartbeat:7.4.2
+    container_name: heartbeat
+    command: --strict.perms=false -e
+    depends_on:
+      - elasticsearch
+      - kibana
+    healthcheck:
+      test: heartbeat test config
+      interval: 30s
+      timeout: 15s
+      retries: 5
+
+
+  logstash:
+    container_name: logstash
+    image: logstash:7.4.2
+    environment:
+      xpack.monitoring.elasticsearch.hosts: '["http://elasticsearch:9200"]'
+    depends_on:
+      - elasticsearch
+      - kibana
+      - broker
+      - heartbeat
+    links:
+      - elasticsearch
+      - broker
+    healthcheck:
+      test: bin/logstash -t
+      interval: 60s
+      timeout: 50s
+      retries: 5
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./pipeline/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+      - ./pipeline/:/usr/share/logstash/pipeline/
+
+
   kibana:
     container_name: kibana
     image: docker.elastic.co/kibana/kibana:7.4.2
@@ -72,45 +139,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-
-  heartbeat:
-    image: docker.elastic.co/beats/heartbeat:7.4.2
-    container_name: heartbeat
-    command: --strict.perms=false -e
-    depends_on:
-      - elasticsearch
-      - kibana
-    healthcheck:
-      test: heartbeat test config
-      interval: 30s
-      timeout: 15s
-      retries: 5
-  
-  logstash:
-    container_name: logstash
-    image: logstash:7.4.2
-    environment:
-      xpack.monitoring.elasticsearch.hosts: '["http://elasticsearch:9200"]'
-    depends_on: 
-      - elasticsearch
-      - kibana
-      - broker
-      - heartbeat
-    links: 
-      - elasticsearch
-      - broker
-    healthcheck:
-      test: bin/logstash -t
-      interval: 60s
-      timeout: 50s
-      retries: 5
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    volumes:
-      - ./pipeline/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
-      - ./pipeline/:/usr/share/logstash/pipeline/
 
 volumes:
   data01:
