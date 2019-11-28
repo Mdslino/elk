@@ -22,6 +22,8 @@ ARG apm_host
 ARG gunicorn_log_level
 ARG gunicorn_workers
 
+ARG db_uri
+
 ARG host
 ARG port
 
@@ -33,7 +35,8 @@ BROKER_USER=$broker_user \
 BROKER_PASS=$broker_pass \
 APM_HOST=$apm_host \
 GUNICORN_LOG_LEVEL=$gunicorn_log_level \
-GUNICORN_WORKERS=$gunicorn_workers
+GUNICORN_WORKERS=$gunicorn_workers \
+DB_URI=$db_uri
 
 ADD . .
 

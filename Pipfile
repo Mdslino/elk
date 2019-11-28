@@ -11,6 +11,10 @@ python-logging-rabbitmq = "*"
 elastic-apm = {extras = ["flask"],version = "*"}
 gunicorn = "*"
 python-decouple = "*"
+flask-sqlalchemy = "*"
+marshmallow-sqlalchemy = "*"
+flask-migrate = "*"
+psycopg2-binary = "*"
 
 [requires]
 python_version = "3.7"
