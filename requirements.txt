@@ -11,5 +11,5 @@ markupsafe==1.1.1
 pika==1.1.0
 python-decouple==3.3
 python-logging-rabbitmq==2.0.0
-urllib3==1.25.7
+urllib3==1.26.5
 werkzeug==0.16.0
